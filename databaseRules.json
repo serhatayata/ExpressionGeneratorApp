@@ -1,0 +1,42 @@
+﻿{
+  "condition": "and",
+  "rules": [
+    {
+      "label": "Name",
+      "field": "Name",
+      "operator": "in",
+      "type": "string",
+      "value": [
+        "Mehmet"
+      ]
+    },
+    {
+      "condition": "or",
+      "rules": [
+        {
+          "label": "Gender",
+          "field": "Gender",
+          "operator": "equal",
+          "type": "int32",
+          "value": 1
+        },
+        {
+          "label": "Age",
+          "field": "Age",
+          "operator": "equal",
+          "type": "int32",
+          "value": 25
+        }
+      ]
+    },
+    {
+      "label": "Department",
+      "field": "Department",
+      "operator": "in",
+      "type": "string",
+      "value": [
+        "Technology"
+      ]
+    }
+  ]
+}
