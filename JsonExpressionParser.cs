@@ -76,7 +76,6 @@ public class JsonExpressionParser
         ConstantExpression toCompare, 
         string @operator)
     {
-        var capitalizedOperator = Regex.Replace(@operator, "^[a-z]", c => c.Value.ToUpper());
         var comparisonParse = Enum.TryParse(@operator, out ComparisonOperator comparisonOperator);
         if (!comparisonParse)
             throw new ArgumentException("Comparison parse failed");
