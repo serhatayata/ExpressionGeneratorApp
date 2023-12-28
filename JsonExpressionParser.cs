@@ -7,12 +7,6 @@ namespace ExpressionGeneratorApp;
 
 public class JsonExpressionParser
 {
-    private readonly string StringStr = nameof(String).ToLowerInvariant();
-    private readonly string BooleanStr = nameof(Boolean).ToLowerInvariant();
-    private readonly string Int32Str = nameof(Int32).ToLowerInvariant();
-    private readonly string DecimalStr = nameof(Decimal).ToLowerInvariant();
-    private readonly string DateTimeStr = nameof(DateTime).ToLowerInvariant();
-
     private readonly string In = nameof(In).ToLowerInvariant();
     private readonly string And = nameof(And).ToLowerInvariant();
 
@@ -121,6 +115,12 @@ public class JsonExpressionParser
         string type, 
         JsonElement value)
     {
+        string StringStr = nameof(String).ToLowerInvariant();
+        string BooleanStr = nameof(Boolean).ToLowerInvariant();
+        string Int32Str = nameof(Int32).ToLowerInvariant();
+        string DecimalStr = nameof(Decimal).ToLowerInvariant();
+        string DateTimeStr = nameof(DateTime).ToLowerInvariant();
+
         if (type == StringStr)
             return (object)value.GetString();
         else if (type == BooleanStr)

@@ -21,10 +21,12 @@ using (var context = new AppDbContext(options))
 
     var ruleFile = await File.ReadAllTextAsync("databaseRules.json");
     var jsonDocument = JsonDocument.Parse(ruleFile);
-    var predicate = parser.ParseExpressionOf<Employee>(jsonDocument);
+    var expression = parser.ParseExpressionOf<Employee>(jsonDocument);
+    var predicate = parser.ParsePredicateOf<Employee>(jsonDocument);
     Console.WriteLine("Started getting data from database...");
 
-    var query = context.Employees.Where(predicate)
+    var listQuery = Employee.GetList(1000).Where(predicate);
+    var query = context.Employees.Where(expression)
                                  .OrderBy(t => t.Id);
 
     var results = await query.ToListAsync();
