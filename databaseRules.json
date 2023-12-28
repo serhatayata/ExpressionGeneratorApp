@@ -7,8 +7,25 @@
       "operator": "in",
       "type": "string",
       "value": [
-        "Mehmet"
+        "Mehmet",
+		"Hasan",
+		"Gizem",
+		"Ayşe"
       ]
+    },
+    {
+      "label": "Birthdate",
+      "field": "Birthdate",
+      "operator": "greater",
+      "type": "datetime",
+      "value": "1986-04-06"
+    },
+    {
+      "label": "Status",
+      "field": "Status",
+      "operator": "equal",
+      "type": "boolean",
+      "value": true
     },
     {
       "condition": "or",

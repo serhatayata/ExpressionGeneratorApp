@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace ExpressionGeneratorApp;
 
@@ -10,6 +11,8 @@ public class JsonExpressionParser
     private readonly string BooleanStr = nameof(Boolean).ToLowerInvariant();
     private readonly string Int32Str = nameof(Int32).ToLowerInvariant();
     private readonly string DecimalStr = nameof(Decimal).ToLowerInvariant();
+    private readonly string DateTimeStr = nameof(DateTime).ToLowerInvariant();
+
     private readonly string In = nameof(In).ToLowerInvariant();
     private readonly string And = nameof(And).ToLowerInvariant();
 
@@ -66,16 +69,24 @@ public class JsonExpressionParser
             {
                 object val = GetTypeValue(type, value);
                 var toCompare = Expression.Constant(val);
-                var right = GetExpressionEquality(property, toCompare);
+                var right = GetExpressionComparison(property, toCompare, @operator);
                 left = bind(left, right);
             }
         }
-
+        
         return left;
     }
 
-    BinaryExpression? GetExpressionEquality(MemberExpression property, ConstantExpression toCompare)
+    BinaryExpression? GetExpressionComparison(
+        MemberExpression property, 
+        ConstantExpression toCompare, 
+        string @operator)
     {
+        var capitalizedOperator = Regex.Replace(@operator, "^[a-z]", c => c.Value.ToUpper());
+        var comparisonParse = Enum.TryParse(@operator, out ComparisonOperator comparisonOperator);
+        if (!comparisonParse)
+            throw new ArgumentException("Comparison parse failed");
+
         if (property.Type.IsEnum)
         {
             toCompare = Expression.Constant(Enum.ToObject(property.Type, toCompare.Value));
@@ -83,7 +94,15 @@ public class JsonExpressionParser
         }
         else
         {
-            return Expression.Equal(property, toCompare);
+            return comparisonOperator switch
+            {
+                ComparisonOperator.equal => Expression.Equal(property, toCompare),
+                ComparisonOperator.notequal => Expression.NotEqual(property, toCompare),
+                ComparisonOperator.greater => Expression.GreaterThan(property, toCompare),
+                ComparisonOperator.greaterorequal => Expression.GreaterThanOrEqual(property, toCompare),
+                ComparisonOperator.less => Expression.LessThan(property, toCompare),
+                ComparisonOperator.lessorequal => Expression.LessThanOrEqual(property, toCompare)
+            };
         }
     }
 
@@ -92,26 +111,28 @@ public class JsonExpressionParser
         var itemExpression = Expression.Parameter(typeof(T));
         var conditions = ParseTree<T>(doc.RootElement, itemExpression);
         if (conditions.CanReduce)
-        {
             conditions = conditions.ReduceAndCheck();
-        }
-
-        Console.WriteLine(conditions.ToString());
 
         var query = Expression.Lambda<Func<T, bool>>(conditions, itemExpression);
         return query;
     }
 
-    public object GetTypeValue(string type, JsonElement value)
+    public object GetTypeValue(
+        string type, 
+        JsonElement value)
     {
-        if (type == StringStr || type == BooleanStr)
+        if (type == StringStr)
             return (object)value.GetString();
+        else if (type == BooleanStr)
+            return (object)value.GetBoolean();
         else if (type == Int32Str)
             return (object)value.GetInt32();
         else if (type == DecimalStr)
             return (object)value.GetDecimal();
+        else if (type == DateTimeStr)
+            return (object)value.GetDateTime();
 
-        return null;
+        throw new ArgumentException("Type not found");
     }
 
     public Func<T, bool> ParsePredicateOf<T>(JsonDocument doc)

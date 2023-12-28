@@ -8,23 +8,8 @@ public class Employee
     public string Department { get; set; }
     public Gender Gender { get; set; }
     public int Age { get; set; }
-
-    public static string GetOne(Random random, string[] list)
-        => list[(int)Math.Floor(random.NextDouble() * list.Length)];
-
-    public static Gender GetAge(Random random)
-        => Enum.GetValues(typeof(Gender))
-               .Cast<Gender>()
-               .ToArray()[random.Next(0,2)];
-
-    public static string[] Names = new[]
-    { "Mehmet", "Gizem", "Hasan", "Ayşe", "Gülsüm", "Serhat", "Fehmi", "Sinem", "Beyza", "Kemal", "Esra", "Emir" };
-
-    public static string[] Surnames = new[]
-    { "Kaya", "Tekin", "Gündüz", "Taş", "Yılmaz", "Sevim", "Derya", "Hikmet", "Şen", "Suna", "Esen", "Reşit" };
-
-    public static string[] Departments = new[]
-    { "Technology", "Marketing", "Finance", "Human Resources" };
+    public DateTime Birthdate { get; set; }
+    public bool Status { get; set; }
 
     public static List<Employee> GetList(int count)
     {
@@ -35,27 +20,39 @@ public class Employee
                 new Employee
                 {
                     Id = id++,
-                    Name = Names.First(),
-                    Surname = Surnames.First(),
+                    Name = RandomData.Names.First(),
+                    Surname = RandomData.Surnames.First(),
                     Department = "Technology",
                     Gender = Models.Gender.Male,
-                    Age = 27
+                    Age = 27,
+                    Birthdate = new DateTime(1996, 2, 2),
+                    Status = RandomData.GetStatus(random)
                 }
             };
         while (--count > 0)
         {
+            var birthdate = RandomData.GetBirthdate(random);
+
             var newEmployee = new Employee
             {
                 Id = id++,
-                Name = GetOne(random, Names),
-                Surname = GetOne(random, Surnames),
-                Department = GetOne(random, Departments),
-                Age = random.Next(18,65),
-                Gender = GetAge(random)
+                Name = RandomData.GetOne(random, RandomData.Names),
+                Surname = RandomData.GetOne(random, RandomData.Surnames),
+                Department = RandomData.GetOne(random, RandomData.Departments),
+                Age = GetAge(birthdate),
+                Gender = RandomData.GetGender(random),
+                Birthdate = birthdate,
+                Status = RandomData.GetStatus(random)
             };
             result.Add(newEmployee);
         }
         return result;
+    }
+
+    public static int GetAge(DateTime birthdate)
+    {
+        TimeSpan span = DateTime.Now - birthdate;
+        return (DateTime.Now + span).Year - 1;
     }
 
     public override string ToString()
