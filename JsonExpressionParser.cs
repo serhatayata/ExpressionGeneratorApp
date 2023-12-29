@@ -116,7 +116,7 @@ public class JsonExpressionParser
     {
         string StringStr = nameof(String).ToLowerInvariant();
         string BooleanStr = nameof(Boolean).ToLowerInvariant();
-        string Int32Str = nameof(Int32).ToLowerInvariant();
+        string IntStr = nameof(Int32).Substring(0, 3).ToLowerInvariant();
         string DecimalStr = nameof(Decimal).ToLowerInvariant();
         string DateTimeStr = nameof(DateTime).ToLowerInvariant();
 
@@ -124,7 +124,7 @@ public class JsonExpressionParser
             return (object)value.GetString();
         else if (type == BooleanStr)
             return (object)value.GetBoolean();
-        else if (type == Int32Str)
+        else if (type == IntStr)
             return (object)value.GetInt32();
         else if (type == DecimalStr)
             return (object)value.GetDecimal();
