@@ -114,11 +114,11 @@ public class JsonExpressionParser
         string type, 
         JsonElement value)
     {
-        string StringStr = nameof(String).ToLowerInvariant();
-        string BooleanStr = nameof(Boolean).ToLowerInvariant();
-        string IntStr = nameof(Int32).Substring(0, 3).ToLowerInvariant();
-        string DecimalStr = nameof(Decimal).ToLowerInvariant();
-        string DateTimeStr = nameof(DateTime).ToLowerInvariant();
+        string StringStr = TypeCode.String.ToString().ToLowerInvariant();
+        string BooleanStr = TypeCode.Boolean.ToString().ToLowerInvariant();
+        string IntStr = TypeCode.Int32.ToString().Substring(0, 3).ToLowerInvariant();
+        string DecimalStr = TypeCode.Decimal.ToString().ToLowerInvariant();
+        string DateTimeStr = TypeCode.DateTime.ToString().ToLowerInvariant();
 
         if (type == StringStr)
             return (object)value.GetString();
