@@ -1,4 +1,6 @@
-﻿namespace ExpressionGeneratorApp.Models;
+﻿using System;
+
+namespace ExpressionGeneratorApp.Models;
 
 public class Employee
 {
@@ -52,7 +54,7 @@ public class Employee
     public static int GetAge(DateTime birthdate)
     {
         TimeSpan span = DateTime.Now - birthdate;
-        return (DateTime.Now + span).Year - 1;
+        return new DateTime(span.Ticks).Year - 1;
     }
 
     public override string ToString()

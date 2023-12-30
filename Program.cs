@@ -23,6 +23,7 @@ using (var context = new AppDbContext(options))
     var jsonDocument = JsonDocument.Parse(ruleFile);
     var expression = parser.ParseExpressionOf<Employee>(jsonDocument);
     var predicate = parser.ParsePredicateOf<Employee>(jsonDocument);
+    var model = RuleModelBuilder.GetModelRule<Employee>();
     Console.WriteLine("Started getting data from database...");
 
     var listQuery = Employee.GetList(1000).Where(predicate);

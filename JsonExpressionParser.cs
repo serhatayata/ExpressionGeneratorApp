@@ -48,7 +48,7 @@ public class JsonExpressionParser
 
             var property = Expression.Property(parm, field);
 
-            if (@operator == In)
+            if (@operator == ComparisonOperator.@in.ToString())
             {
                 var contains = MethodContains.MakeGenericMethod(typeof(string));
                 object val = value.EnumerateArray().Select(e => e.GetString())
