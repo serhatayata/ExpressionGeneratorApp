@@ -7,6 +7,9 @@ public  static class RandomData
     public static string GetOne(Random random, string[] list)
     => list[(int)Math.Floor(random.NextDouble() * list.Length)];
 
+    public static int GetOne(Random random, int[] list)
+    => list[(int)Math.Floor(random.NextDouble() * list.Length)];
+
     public static Gender GetGender(Random random)
         => Enum.GetValues(typeof(Gender))
                .Cast<Gender>()
@@ -20,7 +23,7 @@ public  static class RandomData
     public static string[] Surnames = new[]
     { "Kaya", "Tekin", "Gündüz", "Taş", "Yılmaz", "Sevim", "Derya", "Hikmet", "Şen", "Suna", "Esen", "Reşit" };
 
-    public static string[] Departments = new[]
+    public static string[] Titles = new[]
     { "Technology", "Marketing", "Finance", "Human Resources" };
 
     public static DateTime GetBirthdate(Random random)
