@@ -1,4 +1,7 @@
-﻿using System.Linq.Expressions;
+﻿using System.ComponentModel;
+using System.Data;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -17,9 +20,26 @@ public class JsonExpressionParser
 
     private delegate Expression Binder(Expression left, Expression right);
 
+    public Func<T, bool> ParsePredicateOf<T>(JsonDocument doc)
+    {
+        var query = ParseExpressionOf<T>(doc);
+        return query.Compile();
+    }
+
+    public Expression<Func<T, bool>> ParseExpressionOf<T>(JsonDocument doc)
+    {
+        var itemExpression = Expression.Parameter(typeof(T));
+        var conditions = ParseTree<T>(doc.RootElement, itemExpression);
+        if (conditions.CanReduce)
+            conditions = conditions.ReduceAndCheck();
+
+        var query = Expression.Lambda<Func<T, bool>>(conditions, itemExpression);
+        return query;
+    }
+
     private Expression ParseTree<T>(
-        JsonElement condition,
-        ParameterExpression parm)
+    JsonElement condition,
+    ParameterExpression parm)
     {
         Expression left = null;
         var gate = condition.GetProperty(nameof(condition)).GetString();
@@ -71,10 +91,10 @@ public class JsonExpressionParser
         return left;
     }
 
-    BinaryExpression? GetExpressionComparison(
-        MemberExpression property, 
-        ConstantExpression toCompare, 
-        string @operator)
+    private BinaryExpression? GetExpressionComparison(
+    MemberExpression property, 
+    ConstantExpression toCompare, 
+    string @operator)
     {
         var comparisonParse = Enum.TryParse(@operator, out ComparisonOperator comparisonOperator);
         if (!comparisonParse)
@@ -99,20 +119,30 @@ public class JsonExpressionParser
         }
     }
 
-    public Expression<Func<T, bool>> ParseExpressionOf<T>(JsonDocument doc)
+    private object GetTypeValue(
+    string type, 
+    JsonElement value)
     {
-        var itemExpression = Expression.Parameter(typeof(T));
-        var conditions = ParseTree<T>(doc.RootElement, itemExpression);
-        if (conditions.CanReduce)
-            conditions = conditions.ReduceAndCheck();
+        Type valueType = this.GetType(type);
+        TypeCode typeCode = Type.GetTypeCode(valueType);
 
-        var query = Expression.Lambda<Func<T, bool>>(conditions, itemExpression);
-        return query;
+        object? result = typeCode switch
+        {
+            TypeCode.String => value.GetString(),
+            TypeCode.Boolean => value.GetBoolean(),
+            TypeCode.Int32 => value.GetInt32(),
+            TypeCode.Decimal => value.GetDecimal(),
+            TypeCode.DateTime => value.GetDateTime(),
+            _ => TypeCode.Empty
+        };
+
+        if (result == null)
+            throw new ArgumentException("Type not found");
+
+        return result;
     }
 
-    public object GetTypeValue(
-        string type, 
-        JsonElement value)
+    private Type GetType(string type)
     {
         string StringStr = TypeCode.String.ToString().ToLowerInvariant();
         string BooleanStr = TypeCode.Boolean.ToString().ToLowerInvariant();
@@ -121,22 +151,16 @@ public class JsonExpressionParser
         string DateTimeStr = TypeCode.DateTime.ToString().ToLowerInvariant();
 
         if (type == StringStr)
-            return (object)value.GetString();
+            return typeof(string);
         else if (type == BooleanStr)
-            return (object)value.GetBoolean();
+            return typeof(bool);
         else if (type == IntStr)
-            return (object)value.GetInt32();
+            return typeof(int);
         else if (type == DecimalStr)
-            return (object)value.GetDecimal();
+            return typeof(decimal);
         else if (type == DateTimeStr)
-            return (object)value.GetDateTime();
+            return typeof(DateTime);
 
-        throw new ArgumentException("Type not found");
-    }
-
-    public Func<T, bool> ParsePredicateOf<T>(JsonDocument doc)
-    {
-        var query = ParseExpressionOf<T>(doc);
-        return query.Compile();
+        return null;
     }
 }

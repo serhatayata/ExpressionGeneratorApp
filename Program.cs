@@ -34,18 +34,16 @@ using (var context = new AppDbContext(options))
     var ruleFile = await File.ReadAllTextAsync("databaseRules.json");
     var jsonDocument = JsonDocument.Parse(ruleFile);
 
-    var expression = parser.ParseExpressionOf<Employee>(jsonDocument);
-    var predicate = parser.ParsePredicateOf<Employee>(jsonDocument);
+    //var expression = parser.ParseExpressionOf<Department>(jsonDocument);
+    //var predicate = parser.ParsePredicateOf<Employee>(jsonDocument);
 
     var model = RuleModelBuilder.GetModelRule<Employee>();
-    Console.WriteLine("Started getting data from database...");
 
-    var listQuery = employees.Where(predicate);
-    var query = context.Employees.Where(expression)
-                                 .OrderBy(t => t.Id);
+    //var listQuery = employees.Where(predicate);
+    var query = context.Departments.AsQueryable();
+    query = query.ProcessByProperty(jsonDocument);
 
-    var results = await query.ToListAsync();
-    Console.WriteLine($"Retrieved {results.Count}");
+    var results = query.ToList();
 }
 
 
