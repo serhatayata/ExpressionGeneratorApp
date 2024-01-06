@@ -78,9 +78,12 @@ public static class QueryHelper
             if (fieldItems.Count() > 0)
             {
                 var foreignObjects = fieldItems.Take(fieldItems.Count() - 1);
-                var fieldValues = string.Join(".", foreignObjects);
-                if (!fields.Any(f => f == fieldValues))
-                    fields.Add(fieldValues);
+                if (foreignObjects.Count() > 0)
+                {
+                    var fieldValues = string.Join(".", foreignObjects);
+                    if (!fields.Any(f => f == fieldValues))
+                        fields.Add(fieldValues);
+                }
             }
         }
 

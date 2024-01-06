@@ -30,15 +30,9 @@ public static class RuleModelBuilder
 
     private static List<RuleItemModel> GetRuleItems(Type type)
     {
-        if (type.IsGenericType &&
-            type.GetInterfaces()
-                .Any(s => s.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
-            type = type.GetGenericArguments()[0];
-
         PropertyInfo[] props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                                    .Where(p => !p.PropertyType.IsAssignableFrom(typeof(IEnumerable)) &&
                                                !p.PropertyType.IsAbstract &&
-                                               !p.GetAccessors().Any(a => a.IsVirtual) &&
                                                !notAllowedTypeCodes.Contains(Type.GetTypeCode(p.PropertyType)))
                                    .ToArray();
 
@@ -56,16 +50,12 @@ public static class RuleModelBuilder
 
     private static List<RuleChildItemModel> GetRuleChildItems(Type type)
     {
-        if (type.IsGenericType &&
-            type.GetInterfaces()
-                .Any(s => s.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
-            type = type.GetGenericArguments()[0];
-
         var childItems = new List<RuleChildItemModel>();
         var childProps = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                             .Where(p => p.PropertyType.IsGenericType &&
-                                         p.PropertyType.GetInterfaces()
-                                                       .Any(s => s.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
+                             .Where(p => !p.PropertyType.IsAbstract &&
+                                         p.PropertyType.IsClass &&
+                                         p.CanRead && p.CanWrite &&
+                                         p.PropertyType != typeof(string))
                              .ToArray();
 
         foreach (var childProp in childProps)

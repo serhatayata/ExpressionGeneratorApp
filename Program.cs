@@ -34,16 +34,16 @@ using (var context = new AppDbContext(options))
     var ruleFile = await File.ReadAllTextAsync("databaseRules.json");
     var jsonDocument = JsonDocument.Parse(ruleFile);
 
-    //var expression = parser.ParseExpressionOf<Department>(jsonDocument);
     //var predicate = parser.ParsePredicateOf<Employee>(jsonDocument);
 
-    var model = RuleModelBuilder.GetModelRule(typeof(Department));
+    var model = RuleModelBuilder.GetModelRule(typeof(Employee));
 
     //var listQuery = employees.Where(predicate);
-    var query = context.Departments.AsQueryable();
+    var query = context.Teams.AsQueryable();
     query = query.ProcessByProperty(jsonDocument);
+    var expression = parser.ParseExpressionOf<Team>(jsonDocument);
 
-    var results = query.ToList();
+    var results = query.Where(expression).ToList();
 }
 
 

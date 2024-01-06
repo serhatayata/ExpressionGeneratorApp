@@ -1,10 +1,10 @@
-﻿using System.ComponentModel;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System;
+using System.ComponentModel;
 using System.Data;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace ExpressionGeneratorApp;
 
@@ -12,11 +12,6 @@ public class JsonExpressionParser
 {
     private readonly string In = nameof(In).ToLowerInvariant();
     private readonly string And = nameof(And).ToLowerInvariant();
-
-    private readonly MethodInfo MethodContains = typeof(Enumerable).GetMethods(
-                    BindingFlags.Static | BindingFlags.Public)
-                    .Single(m => m.Name == nameof(Enumerable.Contains)
-                        && m.GetParameters().Length == 2);
 
     private delegate Expression Binder(Expression left, Expression right);
 
@@ -66,24 +61,16 @@ public class JsonExpressionParser
 
             JsonElement value = rule.GetProperty(nameof(value));
 
-            var property = Expression.Property(parm, field);
-
+            var property = GetMemberProperty(parm, field);
             if (@operator == ComparisonOperator.@in.ToString())
             {
-                var contains = MethodContains.MakeGenericMethod(typeof(string));
-                object val = value.EnumerateArray().Select(e => e.GetString())
-                    .ToList();
-                var right = Expression.Call(
-                    contains,
-                    Expression.Constant(val),
-                    property);
+                var right = CreateInExpression(property, value);
                 left = bind(left, right);
             }
             else
             {
                 object val = GetTypeValue(type, value);
-                var toCompare = Expression.Constant(val);
-                var right = GetExpressionComparison(property, toCompare, @operator);
+                var right = GetExpressionComparison(property, val, @operator);
                 left = bind(left, right);
             }
         }
@@ -91,15 +78,53 @@ public class JsonExpressionParser
         return left;
     }
 
+    private static Expression GetMemberProperty(
+    ParameterExpression param, 
+    string field)
+    {
+        if (!field.Contains("."))
+        {
+            return Expression.Property(param, field);
+        }
+        else
+        {
+            Expression member = param;
+            foreach (var namePart in field.Split('.'))
+                member = Expression.Property(member, namePart);
+
+            return member;
+        }
+    }
+
+    private static MethodCallExpression CreateInExpression(
+    Expression prop, 
+    JsonElement val)
+    {
+        MethodInfo methodContains = typeof(Enumerable).GetMethods(
+            BindingFlags.Static | BindingFlags.Public)
+            .Single(m => m.Name == nameof(Enumerable.Contains)
+                && m.GetParameters().Length == 2);
+
+        object value = val.EnumerateArray()
+                          .Select(e => e.GetString())
+                          .ToList();
+
+        return Expression.Call(
+               methodContains.MakeGenericMethod(typeof(string)),
+               Expression.Constant(value),
+               prop);
+    }
+
     private BinaryExpression? GetExpressionComparison(
-    MemberExpression property, 
-    ConstantExpression toCompare, 
+    Expression property, 
+    object val, 
     string @operator)
     {
         var comparisonParse = Enum.TryParse(@operator, out ComparisonOperator comparisonOperator);
         if (!comparisonParse)
             throw new ArgumentException("Comparison parse failed");
 
+        var toCompare = Expression.Constant(val);
         if (property.Type.IsEnum)
         {
             toCompare = Expression.Constant(Enum.ToObject(property.Type, toCompare.Value));
