@@ -66,7 +66,7 @@ public static class RuleModelBuilder
                              .Where(p => p.PropertyType.IsGenericType &&
                                          p.PropertyType.GetInterfaces()
                                                        .Any(s => s.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
-                     .ToArray();
+                             .ToArray();
 
         foreach (var childProp in childProps)
         {
