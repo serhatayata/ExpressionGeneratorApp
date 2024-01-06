@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ExpressionGeneratorApp.Models;
+using System;
 
 namespace ExpressionGeneratorApp.Entities;
 
@@ -61,5 +62,10 @@ public class Team
             result.Add(newTeam);
         }
         return result;
+    }
+
+    public override string ToString()
+    {
+        return $"Id:{Id} Name:{Name} DepartmentId:{DepartmentId} ProjectCount: {Projects.Count()} EmployeeCount: {Employees.Count()}";
     }
 }

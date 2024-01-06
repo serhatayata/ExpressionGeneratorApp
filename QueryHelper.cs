@@ -73,23 +73,64 @@ public static class QueryHelper
         List<string> fields = new List<string>();
         foreach (var rule in rules.EnumerateArray())
         {
-            string field = rule.GetProperty(nameof(field)).GetString();
-            var fieldItems = field.Split(".");
-            if (fieldItems.Count() > 0)
+            var ruleFields = GetRuleFields(rule);
+            ruleFields.ForEach(r =>
             {
-                var foreignObjects = fieldItems.Take(fieldItems.Count() - 1);
-                if (foreignObjects.Count() > 0)
-                {
-                    var fieldValues = string.Join(".", foreignObjects);
-                    if (!fields.Any(f => f == fieldValues))
-                        fields.Add(fieldValues);
-                }
-            }
+                if (!fields.Contains(r))
+                    fields.Add(r);
+            });
         }
 
         foreach (var field in fields)
             source = source.Include(field);
 
         return source;
+    }
+
+    private static List<string> GetRuleFields(JsonElement rule)
+    {
+        var ruleFields = new List<string>();
+        if (rule.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var dRule in rule.EnumerateArray())
+            {
+                var dRuleFields = GetRuleFields(dRule);
+                dRuleFields.ForEach(r =>
+                {
+                    if (!ruleFields.Contains(r))
+                        ruleFields.Add(r);
+                });
+            }
+
+            return ruleFields;
+        }
+
+        bool rules = rule.TryGetProperty(nameof(rules), out var subRule);
+        if (subRule.ValueKind != JsonValueKind.Null &&
+            subRule.ValueKind != JsonValueKind.Undefined)
+            return GetRuleFields(subRule);
+
+        string field = rule.GetProperty(nameof(field)).GetString();
+        ruleFields = GetFieldNames(field, ruleFields);
+        return ruleFields;
+    }
+
+    private static List<string> GetFieldNames(
+    string field, 
+    List<string> ruleFields)
+    {
+        var fieldItems = field.Split(".");
+        if (fieldItems.Count() > 0)
+        {
+            var foreignObjects = fieldItems.Take(fieldItems.Count() - 1);
+            if (foreignObjects.Count() > 0)
+            {
+                var fieldValues = string.Join(".", foreignObjects);
+                if (!ruleFields.Any(f => f == fieldValues))
+                    ruleFields.Add(fieldValues);
+            }
+        }
+
+        return ruleFields;
     }
 }

@@ -15,14 +15,25 @@ public class Department
     /// </summary>
     public string Description { get; set; }
     /// <summary>
+    /// Id of the company
+    /// </summary>
+    public int CompanyId { get; set; }
+    /// <summary>
+    /// Company of department
+    /// </summary>
+    public Company Company { get; set; }
+    /// <summary>
     /// Employees of the department
     /// </summary>
     public ICollection<Team> Teams { get; set; }
 
-    public static List<Department> GetList(int count)
+    public static List<Department> GetList(int count, int companyCount)
     {
         var random = new Random();
         var id = 1;
+        var companies = new List<int>();
+        for (int i = 1; i <= companyCount; i++)
+            companies.Add(i);
 
         var result = new List<Department>
         {
@@ -30,7 +41,8 @@ public class Department
             {
                 Id = id,
                 Title = $"Department-{id}",
-                Description = $"Description-{id}"
+                Description = $"Description-{id}",
+                CompanyId = RandomData.GetOne(random, companies.ToArray())
             }
         };
 
@@ -41,7 +53,8 @@ public class Department
             {
                 Id = id,
                 Title = $"Department-{id}",
-                Description = $"Description-{id}"
+                Description = $"Description-{id}",
+                CompanyId = RandomData.GetOne(random, companies.ToArray())
             };
 
             id++;
@@ -52,6 +65,6 @@ public class Department
 
     public override string ToString()
     {
-        return $"Id:{Id} Title:{Title} Description: {Description}";
+        return $"Id:{Id} Title:{Title} Description: {Description} TeamsCount: {Teams.Count()}";
     }
 }

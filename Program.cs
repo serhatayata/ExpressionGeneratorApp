@@ -7,7 +7,7 @@ Console.WriteLine("Application started");
 var options = new DbContextOptionsBuilder<AppDbContext>()
                 .UseSqlite("Data Source=transactions.db").Options;
 
-int departmentCount = 4, teamCount = 8, employeeCount = 1000, projectCount = 32;
+int departmentCount = 24, teamCount = 96, employeeCount = 2000, projectCount = 192;
 
 var departments = Department.GetList(departmentCount);
 var teams = Team.GetList(teamCount, departmentCount);
@@ -39,9 +39,9 @@ using (var context = new AppDbContext(options))
     var model = RuleModelBuilder.GetModelRule(typeof(Employee));
 
     //var listQuery = employees.Where(predicate);
-    var query = context.Teams.AsQueryable();
+    var query = context.Employees.AsQueryable();
     query = query.ProcessByProperty(jsonDocument);
-    var expression = parser.ParseExpressionOf<Team>(jsonDocument);
+    var expression = parser.ParseExpressionOf<Employee>(jsonDocument);
 
     var results = query.Where(expression).ToList();
 }
