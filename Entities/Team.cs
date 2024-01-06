@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ExpressionGeneratorApp.Models;
+namespace ExpressionGeneratorApp.Entities;
 
 public class Team
 {

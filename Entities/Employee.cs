@@ -1,6 +1,7 @@
 ﻿using System;
+using ExpressionGeneratorApp.Models;
 
-namespace ExpressionGeneratorApp.Models;
+namespace ExpressionGeneratorApp.Entities;
 
 public class Employee
 {
@@ -29,7 +30,7 @@ public class Employee
                 Id = id++,
                 Name = RandomData.Names.First(),
                 Surname = RandomData.Surnames.First(),
-                Gender = Models.Gender.Male,
+                Gender = Gender.Male,
                 Age = 27,
                 Birthdate = new DateTime(1996, 2, 2),
                 Status = RandomData.GetStatus(random),

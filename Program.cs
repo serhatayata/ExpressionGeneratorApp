@@ -1,5 +1,5 @@
 ﻿using ExpressionGeneratorApp;
-using ExpressionGeneratorApp.Models;
+using ExpressionGeneratorApp.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
@@ -37,7 +37,7 @@ using (var context = new AppDbContext(options))
     //var expression = parser.ParseExpressionOf<Department>(jsonDocument);
     //var predicate = parser.ParsePredicateOf<Employee>(jsonDocument);
 
-    var model = RuleModelBuilder.GetModelRule<Employee>();
+    var model = RuleModelBuilder.GetModelRule(typeof(Department));
 
     //var listQuery = employees.Where(predicate);
     var query = context.Departments.AsQueryable();

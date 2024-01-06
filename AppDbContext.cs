@@ -1,4 +1,4 @@
-﻿using ExpressionGeneratorApp.Models;
+﻿using ExpressionGeneratorApp.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ExpressionGeneratorApp;

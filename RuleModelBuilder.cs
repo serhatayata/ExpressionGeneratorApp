@@ -6,32 +6,19 @@ namespace ExpressionGeneratorApp;
 
 public static class RuleModelBuilder
 {
-    public static RuleModel GetModelRule<T>()
+    private static TypeCode[] notAllowedTypeCodes = new[] { TypeCode.Empty, TypeCode.Object, TypeCode.DBNull };
+
+    public static RuleModel GetModelRule(Type type)
     {
         try
         {
             var ruleModel = new RuleModel();
-            var type = typeof(T);
 
             ruleModel.Conditions = GetConditions();
             ruleModel.Operators = GetOperators();
-            TypeCode[] notAllowedTypeCodes = new[] { TypeCode.Empty, TypeCode.Object, TypeCode.DBNull };
-            PropertyInfo[] props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                       .Where(p => !p.PropertyType.IsAssignableFrom(typeof(IEnumerable)) &&
-                                                   !p.PropertyType.IsAbstract &&
-                                                   !p.GetAccessors().Any(a => a.IsVirtual) &&
-                                                   !notAllowedTypeCodes.Contains(Type.GetTypeCode(p.PropertyType)))
-                                       .ToArray();
+            ruleModel.Items = GetRuleItems(type);
+            ruleModel.ChildItems = GetRuleChildItems(type);
 
-            var ruleItems = new List<RuleItemModel>();
-            foreach (var prop in props)
-            {
-                var propertyName = prop.Name;
-                string typeName = GetTypeName(prop.PropertyType);
-
-                ruleItems.Add(new RuleItemModel(propertyName, typeName));
-            }
-            ruleModel.Items = ruleItems;
             return ruleModel;
         }
         catch (Exception ex)
@@ -39,6 +26,61 @@ public static class RuleModelBuilder
             //Log
             return new RuleModel();
         }
+    }
+
+    private static List<RuleItemModel> GetRuleItems(Type type)
+    {
+        if (type.IsGenericType &&
+            type.GetInterfaces()
+                .Any(s => s.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
+            type = type.GetGenericArguments()[0];
+
+        PropertyInfo[] props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                                   .Where(p => !p.PropertyType.IsAssignableFrom(typeof(IEnumerable)) &&
+                                               !p.PropertyType.IsAbstract &&
+                                               !p.GetAccessors().Any(a => a.IsVirtual) &&
+                                               !notAllowedTypeCodes.Contains(Type.GetTypeCode(p.PropertyType)))
+                                   .ToArray();
+
+        var ruleItems = new List<RuleItemModel>();
+        foreach (var prop in props)
+        {
+            var propertyName = prop.Name;
+            string typeName = GetTypeName(prop.PropertyType);
+
+            ruleItems.Add(new RuleItemModel(propertyName, typeName));
+        }
+
+        return ruleItems;
+    }
+
+    private static List<RuleChildItemModel> GetRuleChildItems(Type type)
+    {
+        if (type.IsGenericType &&
+            type.GetInterfaces()
+                .Any(s => s.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
+            type = type.GetGenericArguments()[0];
+
+        var childItems = new List<RuleChildItemModel>();
+        var childProps = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                             .Where(p => p.PropertyType.IsGenericType &&
+                                         p.PropertyType.GetInterfaces()
+                                                       .Any(s => s.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
+                     .ToArray();
+
+        foreach (var childProp in childProps)
+        {
+            var childPropertyName = childProp.Name;
+            var childType = childProp.PropertyType;
+            childItems.Add(new RuleChildItemModel()
+            {
+                Entity = childPropertyName,
+                Items = GetRuleItems(childType),
+                ChildItems = GetRuleChildItems(childType)
+            });
+        }
+
+        return childItems;
     }
 
     private static List<RuleConditionModel> GetConditions()

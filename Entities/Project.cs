@@ -1,4 +1,4 @@
-﻿namespace ExpressionGeneratorApp.Models;
+﻿namespace ExpressionGeneratorApp.Entities;
 
 public class Project
 {
