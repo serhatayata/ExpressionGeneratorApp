@@ -12,6 +12,10 @@ public class JsonExpressionParser
 {
     private readonly string In = nameof(In).ToLowerInvariant();
     private readonly string And = nameof(And).ToLowerInvariant();
+    private static MethodInfo methodContains = typeof(Enumerable).GetMethods(
+                   BindingFlags.Static | BindingFlags.Public)
+                   .Single(m => m.Name == nameof(Enumerable.Contains)
+                   && m.GetParameters().Length == 2);
 
     private delegate Expression Binder(Expression left, Expression right);
 
@@ -64,7 +68,12 @@ public class JsonExpressionParser
             var property = GetMemberProperty(parm, field);
             if (@operator == ComparisonOperator.@in.ToString())
             {
-                var right = CreateInExpression(property, value);
+                var right = CreateInExpression(property, value, type);
+                left = bind(left, right);
+            }
+            else if (@operator == ComparisonOperator.contains.ToString())
+            {
+                var right = CreateContainsExpression(property, value, type);
                 left = bind(left, right);
             }
             else
@@ -97,22 +106,29 @@ public class JsonExpressionParser
     }
 
     private static MethodCallExpression CreateInExpression(
-    Expression prop, 
-    JsonElement val)
+    Expression prop,
+    JsonElement val,
+    string type)
     {
-        MethodInfo methodContains = typeof(Enumerable).GetMethods(
-            BindingFlags.Static | BindingFlags.Public)
-            .Single(m => m.Name == nameof(Enumerable.Contains)
-                && m.GetParameters().Length == 2);
-
-        object value = val.EnumerateArray()
-                          .Select(e => e.GetString())
-                          .ToList();
+        object value = GetTypeEnumeratedValue(val, type);
 
         return Expression.Call(
-               methodContains.MakeGenericMethod(typeof(string)),
+               methodContains.MakeGenericMethod(GetType(type)),
                Expression.Constant(value),
                prop);
+    }
+
+    private static MethodCallExpression CreateContainsExpression(
+    Expression prop,
+    JsonElement val,
+    string type)
+    {
+        object value = GetTypeValue(type, val);
+        return Expression.Call(
+               prop,
+               nameof(string.Contains),
+               Type.EmptyTypes,
+               Expression.Constant(value));
     }
 
     private BinaryExpression? GetExpressionComparison(
@@ -144,30 +160,47 @@ public class JsonExpressionParser
         }
     }
 
-    private object GetTypeValue(
+    private static object? GetTypeValue(
     string type, 
     JsonElement value)
     {
-        Type valueType = this.GetType(type);
+        var valueType = GetType(type);
         TypeCode typeCode = Type.GetTypeCode(valueType);
 
-        object? result = typeCode switch
+        return typeCode switch
         {
             TypeCode.String => value.GetString(),
             TypeCode.Boolean => value.GetBoolean(),
             TypeCode.Int32 => value.GetInt32(),
+            TypeCode.Int16 => value.GetInt16(),
+            TypeCode.Int64 => value.GetInt64(),
+            TypeCode.Byte => value.GetByte(),
+            TypeCode.Single => value.GetSingle(),
             TypeCode.Decimal => value.GetDecimal(),
             TypeCode.DateTime => value.GetDateTime(),
             _ => TypeCode.Empty
         };
-
-        if (result == null)
-            throw new ArgumentException("Type not found");
-
-        return result;
     }
 
-    private Type GetType(string type)
+    private static object GetTypeEnumeratedValue(
+    JsonElement val,
+    string type)
+    {
+        var valueType = GetType(type);
+        TypeCode typeCode = Type.GetTypeCode(valueType);
+
+        var enumeratedArray = val.EnumerateArray();
+        return typeCode switch
+        {
+            TypeCode.String => enumeratedArray.Select(s => s.GetString()),
+            TypeCode.Int32 => enumeratedArray.Select(s => s.GetInt32()),
+            TypeCode.Int16 => enumeratedArray.Select(s => s.GetInt16()),
+            TypeCode.Single => enumeratedArray.Select(s => s.GetSingle()),
+            TypeCode.Decimal => enumeratedArray.Select(s => s.GetDecimal()),
+        };
+    }
+
+    private static Type GetType(string type)
     {
         string StringStr = TypeCode.String.ToString().ToLowerInvariant();
         string BooleanStr = TypeCode.Boolean.ToString().ToLowerInvariant();

@@ -7,9 +7,10 @@ Console.WriteLine("Application started");
 var options = new DbContextOptionsBuilder<AppDbContext>()
                 .UseSqlite("Data Source=transactions.db").Options;
 
-int departmentCount = 24, teamCount = 96, employeeCount = 2000, projectCount = 192;
+int companyCount = 6, departmentCount = 24, teamCount = 96, employeeCount = 2000, projectCount = 192;
 
-var departments = Department.GetList(departmentCount);
+var companies = Company.GetList(companyCount);
+var departments = Department.GetList(departmentCount, companyCount);
 var teams = Team.GetList(teamCount, departmentCount);
 var employees = Employee.GetList(employeeCount, teamCount);
 var projects = Project.GetList(projectCount, teamCount);
@@ -23,6 +24,7 @@ using (var context = new AppDbContext(options))
     context.Teams.AddRange(teams);
     context.Projects.AddRange(projects);
     context.Employees.AddRange(employees);
+    context.Companies.AddRange(companies);
 
     await context.SaveChangesAsync();
 }

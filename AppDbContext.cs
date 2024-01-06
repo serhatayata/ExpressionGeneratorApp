@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<Department> Departments { get; set; }
     public DbSet<Team> Teams { get; set; }
     public DbSet<Project> Projects { get; set; }
+    public DbSet<Company> Companies { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -41,6 +42,14 @@ public class AppDbContext : DbContext
             .WithMany(t => t.Employees)
             .HasForeignKey(e => e.TeamId)
             .HasConstraintName("FK_Team_Employee")
+            .IsRequired();
+
+        modelBuilder
+            .Entity<Department>()
+            .HasOne(p => p.Company)
+            .WithMany(t => t.Departments)
+            .HasForeignKey(e => e.CompanyId)
+            .HasConstraintName("FK_Department_Company")
             .IsRequired();
 
         base.OnModelCreating(modelBuilder);
