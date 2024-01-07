@@ -1,4 +1,4 @@
-﻿namespace ExpressionGeneratorApp;
+﻿namespace ExpressionGeneratorApp.Helpers;
 
 public static class StringHelper
 {

@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
-namespace ExpressionGeneratorApp;
+namespace ExpressionGeneratorApp.Helpers;
 
 public static class QueryHelper
 {
@@ -27,7 +27,7 @@ public static class QueryHelper
     {
         return source.IncludeProperty(doc)
                      .OrderByProperty(doc);
-                     
+
     }
 
     private static IQueryable<T> OrderByProperty<T>(
@@ -116,7 +116,7 @@ public static class QueryHelper
     }
 
     private static List<string> GetFieldNames(
-    string field, 
+    string field,
     List<string> ruleFields)
     {
         var fieldItems = field.Split(".");

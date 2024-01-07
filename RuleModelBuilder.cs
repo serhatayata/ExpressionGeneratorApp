@@ -105,11 +105,11 @@ public static class RuleModelBuilder
             var symbol = op switch
             {
                 ComparisonOperator.equal => "=",
-                ComparisonOperator.notequal => "!=",
+                ComparisonOperator.not_equal => "!=",
                 ComparisonOperator.greater => ">",
-                ComparisonOperator.greaterorequal => ">=",
+                ComparisonOperator.greater_or_equal => ">=",
                 ComparisonOperator.less => "<",
-                ComparisonOperator.lessorequal => "<=",
+                ComparisonOperator.less_or_equal => "<=",
                 ComparisonOperator.@in => "in",
             };
             var model = new RuleOperatorModel(op.ToString(), symbol);

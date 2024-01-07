@@ -1,5 +1,6 @@
 ﻿using ExpressionGeneratorApp;
 using ExpressionGeneratorApp.Entities;
+using ExpressionGeneratorApp.Helpers;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
@@ -36,16 +37,12 @@ using (var context = new AppDbContext(options))
     var ruleFile = await File.ReadAllTextAsync("databaseRules.json");
     var jsonDocument = JsonDocument.Parse(ruleFile);
 
-    //var predicate = parser.ParsePredicateOf<Employee>(jsonDocument);
-
     var model = RuleModelBuilder.GetModelRule(typeof(Employee));
 
-    //var listQuery = employees.Where(predicate);
     var query = context.Employees.AsQueryable();
     query = query.ProcessByProperty(jsonDocument);
-    var expression = parser.ParseExpressionOf<Employee>(jsonDocument);
-
-    var results = query.Where(expression).ToList();
+    var predicate = parser.ParsePredicateOf<Employee>(jsonDocument);
+    var results = query.Where(predicate).ToList();
 }
 
 
