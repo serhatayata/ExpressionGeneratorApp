@@ -111,6 +111,8 @@ public static class RuleModelBuilder
                 ComparisonOperator.less => "<",
                 ComparisonOperator.less_or_equal => "<=",
                 ComparisonOperator.@in => "in",
+                ComparisonOperator.contains => "contains",
+                ComparisonOperator.starts_with => "startsWith",
             };
             var model = new RuleOperatorModel(op.ToString(), symbol);
             result.Add(model);
